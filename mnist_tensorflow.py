@@ -8,19 +8,38 @@ Created on Tue Oct 31 12:37:48 2017
 import tensorflow as tf
 import pandas as pd
 
-# Parameters
-learning_rate = 0.1
-num_steps = 500
-batch_size = 128
-display_step = 100
+def contruct_network(input_size, X, y):
+    X_placeholder = tf.placeholder(tf.float32, [None, input_size])
+    y_placeholder = tf.placeholder(tf.float32, [None, 1])
+    
+    W1 = tf.Variable(tf.random_normal([input_size, 50]))
+    W2 = tf.Variable(tf.random_normal([50, 1]))
+    
+    a1 = tf.nn.sigmoid(tf.matmul(X_placeholder, W1))
+    a2 = tf.nn.softmax(tf.matmul(a1, W2))
+    prediction = a2
+    
+    loss = tf.reduce_sum(tf.square(prediction - y), reduction_indices = [1])
+    train_step = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
+    
+    init = tf.global_variables_initializer()
+    
+    with tf.Session() as sess:
+        sess.run(init)
+        for iters in range(1000):
+            sess.run(train_step, feed_dict = {X_placeholder: X, y_placeholder: y})
+            if iters % 50 == 0:
+                print(sess.run(a2, feed_dict={X_placeholder: X, y_placeholder: y}))
+    return None
 
-# Network Parameters
-n_hidden_1 = 256 # 1st layer number of neurons
-n_hidden_2 = 256 # 2nd layer number of neurons
-num_input = 784 # MNIST data input (img shape: 28*28)
-num_classes = 10 # MNIST total classes (0-9 digits)
+def main():
+    #42000*784
+    df = pd.read_csv('train.csv')
+    X = df.drop(['label'], axis = 1)
+    y = df['label']
+    
+    contruct_network(df.shape[1]-1, X.values, y.values.reshape(-1, 1))
+    
+    return None
 
-# tf Graph input
-X = tf.placeholder("float", [None, num_input])
-Y = tf.placeholder("float", [None, num_classes])
-
+main()
