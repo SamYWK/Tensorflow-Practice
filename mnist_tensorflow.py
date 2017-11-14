@@ -14,14 +14,16 @@ def contruct_network(input_size, X, y):
         X_placeholder = tf.placeholder(tf.float32, [None, input_size])
         y_placeholder = tf.placeholder(tf.float32, [None, 10])
         
-        W1 = tf.Variable(tf.random_normal([input_size, 10]))
-        W2 = tf.Variable(tf.random_normal([50, 1]))
+        W1 = tf.Variable(tf.random_normal([input_size, 50]))
+        b1 = tf.Variable(tf.zeros([1, 50]) + 0.1)
+        W2 = tf.Variable(tf.random_normal([50, 10]))
+        b2 = tf.Variable(tf.zeros([1, 10]) + 0.1)
         
-        a1 = tf.nn.sigmoid(tf.matmul(X_placeholder, W1))
-        #a2 = tf.nn.softmax(tf.matmul(a1, W2))
-        #prediction = a2
+        a1 = tf.nn.relu(tf.matmul(X_placeholder, W1) + b1)
+        a2 = tf.nn.relu(tf.matmul(a1, W2) + b2)
+        prediction = tf.nn.softmax(a2)
         
-        loss = tf.reduce_mean(tf.reduce_sum(tf.square(a1 - y), reduction_indices = [1]))
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels = y_placeholder, logits = prediction))
         train_step = tf.train.GradientDescentOptimizer(0.1).minimize(loss)
         
         init = tf.global_variables_initializer()
